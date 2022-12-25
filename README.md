@@ -1,1 +1,1 @@
-# ntic-viva
+# viva-rest-api
