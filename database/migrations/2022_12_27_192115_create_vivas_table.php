@@ -17,15 +17,15 @@ return new class extends Migration
             $table->id();
             $table->string('project_name');
             $table->year('year');
-            $table->float('sup_mark', 3, 2);
-            $table->float('pre_mark', 3, 2);
-            $table->float('exa_mark', 3, 2);
+            $table->double('sup_mark', 8, 2);
+            $table->double('pre_mark', 8, 2);
+            $table->double('exa_mark', 8, 2);
             $table->string('sup_name');
             $table->string('pre_name');
             $table->string('exa_name');
-            $table->float('final_mark', 3, 2);
-            $table->string('code');
-            $table->json('students'); 
+            $table->double('final_mark', 8, 2);
+            $table->string('code')->unique();
+            $table->json('students');
             $table->timestamps();
         });
     }
