@@ -1,10 +1,13 @@
 <?php
-
+namespace Illuminate\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Dompdf\Dompdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
+use Dompdf\Dompdf;
 use App\Models\Viva;
+use App\Http\Controllers\PDFController;
+
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -54,6 +57,7 @@ Route::middleware('auth:sanctum')->get('/user/revoke', function (Request $reques
     return $user->tokens()->delete();
 });
 
+// , JSON_FORCE_OBJECT);
 Route::get('/code', function (Request $request) {
     return substr(str_shuffle(base64_encode("amine ,benamrouche")), 0, 7);
 });
@@ -70,7 +74,7 @@ Route::middleware('auth:sanctum')->post('/viva/create', function (Request $reque
     $exa_name = $request->exa_name;
     $final_mark = $request->final_mark;
     $students = json_encode($request->students);
-    $code =  substr(str_shuffle(base64_encode($request->students)), 0, 7);
+    $code =  substr(str_shuffle(base64_encode($request->students[0])), 0, 7);
     $viva = Viva::create([
         'project_name' => $project_name ,
         'year' => $year ,
@@ -115,3 +119,61 @@ $dompdf->render();
 // Output the generated PDF to Browser
 return $dompdf->stream();
 });
+
+Route::middleware('auth:sanctum')->get('/pdff', function (Request $request) {
+    // $project_name = $request->project_name;
+    // $year = $request->year;
+    // $students = $request->students;
+    // $sup_mark = $request->sup_mark;
+    // $pre_mark = $request->pre_mark;
+    // $exa_mark = $request->exa_mark;
+    // $sup_name = $request->sup_name;
+    // $pre_name = $request->pre_name;
+    // $exa_name = $request->exa_name;
+    // $final_mark = $request->final_mark;
+    $code = $request->code;
+    $full_Name = $request->user()->name;
+    $viva = Viva::where('code', $code)->get();
+    $data_array = ['name' => $viva[0]['project_name'] ,
+    'year' => $viva[0]['year'] ,
+    'sup_mark' => $viva[0]['sup_mark'] ,
+     'pre_mark'=> $viva[0]['pre_mark'] ,
+     'exa_mark' => $viva[0]['exa_mark'],
+       'sup_name' => $viva[0]['sup_name'],
+       'pre_name' => $viva[0]['pre_name'],
+       'exa_name' => $viva[0]['exa_name'],
+       'final_mark' => $viva[0]['final_mark'],
+       'students' => $viva[0]['students'],
+       'code' => $code,
+       'full_name' => $full_Name
+];
+    return view('pdf', $data_array);
+});
+Route::get('/htmltopdf', [PDFController::class, 'generatePDF']);
+Route::middleware('auth:sanctum')->post('/htmltopdff',function (Request $request) {
+
+$code = $request->code;
+        $full_Name = $request->user()->name;
+
+        $viva = Viva::where('code', $code)->get();
+        $data_array = ['name' => $viva[0]['project_name'] ,
+        'year' => $viva[0]['year'] ,
+        'sup_mark' => $viva[0]['sup_mark'] ,
+         'pre_mark'=> $viva[0]['pre_mark'] ,
+         'exa_mark' => $viva[0]['exa_mark'],
+           'sup_name' => $viva[0]['sup_name'],
+           'pre_name' => $viva[0]['pre_name'],
+           'exa_name' => $viva[0]['exa_name'],
+           'final_mark' => $viva[0]['final_mark'],
+           'students' => (json_decode($viva[0]['students'],true)),
+           'code' => $code
+           ,
+           'full_name' => $full_Name
+    ];
+     $pdf = new Dompdf();
+    $pdf->load_html(view('pdf', $data_array));
+    // $pdf->setPaper('A4', 'horizontal');
+    $pdf->render();
+    return $pdf->stream();
+}
+);
