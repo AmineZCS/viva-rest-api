@@ -46,7 +46,8 @@ Route::post('/sanctum/token', function (Request $request) {
         ]);
     }
 
-    return $user->createToken($request->device_name)->plainTextToken;
+     return $user->createToken($request->device_name)->plainTextToken;
+
 });
 
 
@@ -149,6 +150,8 @@ Route::middleware('auth:sanctum')->get('/pdff', function (Request $request) {
 ];
     return view('pdf', $data_array);
 });
+Route::middleware('auth:sanctum')->post('/sendPDF', [PDFController::class, 'sendPDF']);
+
 Route::get('/htmltopdf', [PDFController::class, 'generatePDF']);
 Route::middleware('auth:sanctum')->post('/htmltopdff',function (Request $request) {
 
@@ -166,8 +169,7 @@ $code = $request->code;
            'exa_name' => $viva[0]['exa_name'],
            'final_mark' => $viva[0]['final_mark'],
            'students' => (json_decode($viva[0]['students'],true)),
-           'code' => $code
-           ,
+           'code' => $code,
            'full_name' => $full_Name
     ];
      $pdf = new Dompdf();
@@ -175,5 +177,4 @@ $code = $request->code;
     // $pdf->setPaper('A4', 'horizontal');
     $pdf->render();
     return $pdf->stream();
-}
-);
+});
