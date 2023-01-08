@@ -8,6 +8,8 @@ use Dompdf\Dompdf;
 use App\Models\Viva;
 use App\Http\Controllers\PDFController;
 
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VivaAdded;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -178,3 +180,35 @@ $code = $request->code;
     $pdf->render();
     return $pdf->stream();
 });
+Route::middleware('auth:sanctum')->post('/pp', function (Request $request) {
+    $code = $request->code;
+    $viva = Viva::where('code', $code)->get();
+    $data_array = ['name' => $viva[0]['project_name'] ,
+    'year' => $viva[0]['year'] ,
+    'sup_mark' => $viva[0]['sup_mark'] ,
+     'pre_mark'=> $viva[0]['pre_mark'] ,
+     'exa_mark' => $viva[0]['exa_mark'],
+       'sup_name' => $viva[0]['sup_name'],
+       'pre_name' => $viva[0]['pre_name'],
+       'exa_name' => $viva[0]['exa_name'],
+       'final_mark' => $viva[0]['final_mark'],
+       'students' => (json_decode($viva[0]['students'],true))];
+    return view('welcome',$data_array);
+});
+Route::middleware('auth:sanctum')->post('/sendEmail', function (Request $request) {
+
+
+        /**
+         * Store a receiver email address to a variable.
+         */
+
+        $reveiverEmailAddress = $request->user()->email;
+        return Mail::to($reveiverEmailAddress)->send(new VivaAdded($request));
+
+        /**
+         * Check if the email has been sent successfully, or not.
+         * Return the appropriate message.
+         */
+
+});
+
