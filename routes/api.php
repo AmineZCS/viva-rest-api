@@ -61,11 +61,12 @@ Route::middleware('auth:sanctum')->get('/user/revoke', function (Request $reques
 });
 
 // , JSON_FORCE_OBJECT);
+// testing how to generate secret key
 Route::get('/code', function (Request $request) {
     return substr(str_shuffle(base64_encode("amine ,benamrouche")), 0, 7);
 });
 
-// New Viva
+// Create New Viva
 Route::middleware('auth:sanctum')->post('/viva/create', function (Request $request) {
     $project_name = $request->project_name;
     $year = $request->year;
@@ -124,16 +125,7 @@ return $dompdf->stream();
 });
 
 Route::middleware('auth:sanctum')->get('/pdff', function (Request $request) {
-    // $project_name = $request->project_name;
-    // $year = $request->year;
-    // $students = $request->students;
-    // $sup_mark = $request->sup_mark;
-    // $pre_mark = $request->pre_mark;
-    // $exa_mark = $request->exa_mark;
-    // $sup_name = $request->sup_name;
-    // $pre_name = $request->pre_name;
-    // $exa_name = $request->exa_name;
-    // $final_mark = $request->final_mark;
+
     $code = $request->code;
     $full_Name = $request->user()->name;
     $viva = Viva::where('code', $code)->get();
@@ -195,15 +187,17 @@ Route::middleware('auth:sanctum')->post('/pp', function (Request $request) {
        'students' => (json_decode($viva[0]['students'],true))];
     return view('welcome',$data_array);
 });
+
+// send email
 Route::middleware('auth:sanctum')->post('/sendEmail', function (Request $request) {
 
 
         /**
          * Store a receiver email address to a variable.
          */
-
+        // $request->user()->email;
         $reveiverEmailAddress = $request->user()->email;
-        return Mail::to($reveiverEmailAddress)->send(new VivaAdded($request));
+        return Mail::to($reveiverEmailAddress)->send(new VivaAdded());
 
         /**
          * Check if the email has been sent successfully, or not.

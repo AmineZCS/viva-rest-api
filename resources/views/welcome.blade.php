@@ -176,7 +176,7 @@ MINISTERE DE L’ENSEIGNEMENT SUPERIEUR ET DE LA RECHERCHE SCIENTIFIQUE</strong>
         <td style="padding:10px 0px 18px 0px; line-height:22px; text-align:inherit;" height="100%" valign="top" bgcolor="" role="module-content"><div><div style="font-family: inherit; text-align: center">{{$name}}</div><div></div></div></td>
     </tr>
     <tr>
-        <td style="padding:10px 0px 18px 0px; line-height:22px; text-align:inherit;" height="100%" valign="top" bgcolor="" role="module-content"><div><div style="font-family: inherit; text-align: center">{{$Vivaode}}</div><div></div></div></td>
+        <td style="padding:10px 0px 18px 0px; line-height:22px; text-align:inherit;" height="100%" valign="top" bgcolor="" role="module-content"><div><div style="font-family: inherit; text-align: center">{{$Vivacode}}</div><div></div></div></td>
     </tr>
     </tbody>
   </table><table class="module" role="module" data-type="text" border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;" data-muid="6bb6b557-6c8a-43d4-8df2-ebcd34e770c1">
