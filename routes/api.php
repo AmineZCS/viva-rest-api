@@ -1,10 +1,15 @@
 <?php
 namespace Illuminate\View;
-use App\Http\Controllers\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
+use Dompdf\Dompdf;
+use App\Models\Viva;
+use App\Http\Controllers\PDFController;
+
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VivaAdded;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -24,45 +29,28 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-// login route that goes to AuthController
-Route::post('/login', [AuthController::class, 'login']);
-// logout route that goes to AuthController and it is protected by sanctum
-Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
-// signup route
-Route::post('/signup', function (Request $request) {
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-    $user = User::create([
-        'email' => $request->email,
-        'password' => Hash::make($request->password),
-    ]);
-    return $user->createToken($request->email)->plainTextToken;
-});
+
 
 // login and return token
 
-
 Route::post('/sanctum/token', function (Request $request) {
-    // $request->validate([
-    //     'email' => 'required|email',
-    //     'password' => 'required',
-    //     'device_name' => 'required',
-    // ]);
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+        'device_name' => 'required',
+    ]);
 
     $user = User::where('email', $request->email)->first();
 
     if (! $user || ! Hash::check($request->password, $user->password)) {
         throw ValidationException::withMessages([
-            'error' => ['The provided credentials are incorrect.'],
+            'email' => ['The provided credentials are incorrect.'],
         ]);
     }
 
-     return $user->createToken($request->email)->plainTextToken;
+     return $user->createToken($request->device_name)->plainTextToken;
 
 });
-
 
 
 
@@ -116,3 +104,105 @@ Route::middleware('auth:sanctum')->post('/viva', function (Request $request) {
         ->get();
     return $viva;
 });
+
+
+
+
+
+// generate pdf and download it
+Route::middleware('auth:sanctum')->get('/pdf', function (Request $request) {
+    $dompdf = new Dompdf();
+$dompdf->loadHtml('hello world');
+
+// (Optional) Setup the paper size and orientation
+$dompdf->setPaper('A4', 'landscape');
+
+// Render the HTML as PDF
+$dompdf->render();
+
+// Output the generated PDF to Browser
+return $dompdf->stream();
+});
+
+Route::middleware('auth:sanctum')->get('/pdff', function (Request $request) {
+
+    $code = $request->code;
+    $full_Name = $request->user()->name;
+    $viva = Viva::where('code', $code)->get();
+    $data_array = ['name' => $viva[0]['project_name'] ,
+    'year' => $viva[0]['year'] ,
+    'sup_mark' => $viva[0]['sup_mark'] ,
+     'pre_mark'=> $viva[0]['pre_mark'] ,
+     'exa_mark' => $viva[0]['exa_mark'],
+       'sup_name' => $viva[0]['sup_name'],
+       'pre_name' => $viva[0]['pre_name'],
+       'exa_name' => $viva[0]['exa_name'],
+       'final_mark' => $viva[0]['final_mark'],
+       'students' => $viva[0]['students'],
+       'code' => $code,
+       'full_name' => $full_Name
+];
+    return view('pdf', $data_array);
+});
+Route::middleware('auth:sanctum')->post('/sendPDF', [PDFController::class, 'sendPDF']);
+
+Route::get('/htmltopdf', [PDFController::class, 'generatePDF']);
+Route::middleware('auth:sanctum')->post('/htmltopdff',function (Request $request) {
+
+$code = $request->code;
+        $full_Name = $request->user()->name;
+
+        $viva = Viva::where('code', $code)->get();
+        $data_array = ['name' => $viva[0]['project_name'] ,
+        'year' => $viva[0]['year'] ,
+        'sup_mark' => $viva[0]['sup_mark'] ,
+         'pre_mark'=> $viva[0]['pre_mark'] ,
+         'exa_mark' => $viva[0]['exa_mark'],
+           'sup_name' => $viva[0]['sup_name'],
+           'pre_name' => $viva[0]['pre_name'],
+           'exa_name' => $viva[0]['exa_name'],
+           'final_mark' => $viva[0]['final_mark'],
+           'students' => (json_decode($viva[0]['students'],true)),
+           'code' => $code,
+           'full_name' => $full_Name
+    ];
+     $pdf = new Dompdf();
+    $pdf->load_html(view('pdf', $data_array));
+    // $pdf->setPaper('A4', 'horizontal');
+    $pdf->render();
+    return $pdf->stream();
+});
+Route::middleware('auth:sanctum')->post('/pp', function (Request $request) {
+    $code = $request->code;
+    $viva = Viva::where('code', $code)->get();
+    $data_array = ['name' => $viva[0]['project_name'] ,
+    'year' => $viva[0]['year'] ,
+    'sup_mark' => $viva[0]['sup_mark'] ,
+     'pre_mark'=> $viva[0]['pre_mark'] ,
+     'exa_mark' => $viva[0]['exa_mark'],
+       'sup_name' => $viva[0]['sup_name'],
+       'pre_name' => $viva[0]['pre_name'],
+       'exa_name' => $viva[0]['exa_name'],
+       'final_mark' => $viva[0]['final_mark'],
+       'students' => (json_decode($viva[0]['students'],true))];
+    return view('welcome',$data_array);
+});
+
+// send email
+Route::middleware('auth:sanctum')->post('/sendEmail', function (Request $request) {
+
+
+        /**
+         * Store a receiver email address to a variable.
+         */
+        // $request->user()->email;
+        $reveiverEmailAddress = $request->user()->email;
+        return Mail::to($reveiverEmailAddress)->send(new VivaAdded());
+
+        /**
+         * Check if the email has been sent successfully, or not.
+         * Return the appropriate message.
+         */
+
+});
+
